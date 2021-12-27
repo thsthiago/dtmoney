@@ -4,14 +4,15 @@ import outcomeImg from '../../assets/outcome.svg';
 import Modal from 'react-modal'
 import { Container, TransactionTypeContainer, RadioBox } from "./styles"
 import { FormEvent, useState } from 'react';
-import { api } from '../../services/api';
+import { useTransactions } from '../../hooks/useTransactions';
 
 interface InewTransactionModal {
   isOpen: boolean;
   onRequestClose: () => void;
 }
 
-export const NewTransactionModal = ({ ...rest }: InewTransactionModal) => {
+export const NewTransactionModal = ({  onRequestClose ,...rest }: InewTransactionModal) => {
+  const { createTransaction } = useTransactions()
   const [title, setTitle] = useState('')
   const [value, setValue] = useState('')
   const [category, setCategory] = useState('')
@@ -19,29 +20,30 @@ export const NewTransactionModal = ({ ...rest }: InewTransactionModal) => {
 
   const handleCreateNewTransaction = async (e: FormEvent) => {
     e.preventDefault()
-    try {
-      const data = {
-        title,
-        value: Number(value),
-        category,
-        type
-      }
+    await createTransaction({
+      amount: Number(value),
+      caterogy: category,
+      title,
+      type
+    })
 
-      api.post('/transactions', data)
-    } catch (error) {
-      console.log(error)
-    }
+    setTitle('')
+    setValue('')
+    setCategory('')
+    setType('deposit')
+    onRequestClose()
   }
 
   return (
     <Modal
       {...rest}
+      onRequestClose={onRequestClose}
       overlayClassName="react-modal-overlay"
       className="react-modal-content"
     >
       <button
         type="button"
-        onClick={rest.onRequestClose}
+        onClick={onRequestClose}
         className="react-modal-close"
       >
         <img src={closeImg} alt="Fechar modal" />
